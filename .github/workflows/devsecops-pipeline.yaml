@@ -28,7 +28,7 @@ jobs:
           fetch-depth: 0
 
       - name: TruffleHog Secret Scan
-        uses: trufflesecurity/trufflehog-action@main
+        uses: trufflesecurity/trufflehog@main
         with:
           head: ${{ github.sha }}
           extra_args: --debug --only-verified --json
@@ -135,7 +135,7 @@ jobs:
           image-ref: ${{ steps.meta.outputs.image }}
           format: json
           output: trivy-results.json
-          exit-code: '1'
+          exit-code: "1"
           ignore-unfixed: true
           vuln-type: os,library
           severity: CRITICAL
@@ -215,7 +215,7 @@ jobs:
       - name: OWASP ZAP API DAST Scan
         uses: zaproxy/action-api-scan@v0.7.0
         with:
-          target: 'http://${{ secrets.ORDER_SERVICE_HOST }}:8000/openapi.json'
+          target: "http://${{ secrets.ORDER_SERVICE_HOST }}:8000/openapi.json"
           format: openapi
           fail_action: false
 
