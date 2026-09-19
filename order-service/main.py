@@ -1,4 +1,5 @@
 import os
+import sqlite3
 import httpx
 from fastapi import FastAPI, HTTPException, status
 from pydantic import BaseModel, Field
@@ -24,6 +25,23 @@ class OrderRequest(BaseModel):
 @app.get("/healthz", status_code=status.HTTP_200_OK)
 def health_check() -> Dict[str, str]:
     return {"status": "ok"}
+
+
+@app.get("/orders/search", status_code=status.HTTP_200_OK)
+def search_orders(query: str):
+    # VULNERABILITY: Intentional SQL Injection (CWE-89) for SAST scanning test
+    sql_query = f"SELECT * FROM orders WHERE customer_id = '{query}' OR customer_email = '{query}'"
+    
+    conn = sqlite3.connect(":memory:")
+    cursor = conn.cursor()
+    cursor.execute("CREATE TABLE IF NOT EXISTS orders (id INT, customer_id TEXT, customer_email TEXT)")
+    
+    # Executing raw concatenated SQL query directly against database cursor
+    cursor.execute(sql_query)
+    results = cursor.fetchall()
+    conn.close()
+    
+    return {"executed_query": sql_query, "results": results}
 
 
 @app.post("/orders", status_code=status.HTTP_201_CREATED)
@@ -72,3 +90,4 @@ async def create_order(order: OrderRequest) -> Dict[str, Any]:
         "payment_status": payment_data,
         "notification_status": notif_data
     }
+
