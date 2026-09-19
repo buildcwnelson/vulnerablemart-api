@@ -1,0 +1,121 @@
+version: '3.8'
+
+services:
+  # ==========================================
+  # Microservices Stack
+  # ==========================================
+  order-service:
+    build:
+      context: ./order-service
+      dockerfile: Dockerfile
+    container_name: order-service
+    ports:
+      - "8000:8000"
+    environment:
+      - INVENTORY_SERVICE_URL=http://inventory-service:8001
+      - PAYMENT_SERVICE_URL=http://payment-service:8002
+      - NOTIFICATION_SERVICE_URL=http://notification-service:8003
+    depends_on:
+      - inventory-service
+      - payment-service
+      - notification-service
+    networks:
+      - vulnerablemart-network
+
+  inventory-service:
+    build:
+      context: ./inventory-service
+      dockerfile: Dockerfile
+    container_name: inventory-service
+    ports:
+      - "8001:8001"
+    networks:
+      - vulnerablemart-network
+
+  payment-service:
+    build:
+      context: ./payment-service
+      dockerfile: Dockerfile
+    container_name: payment-service
+    ports:
+      - "8002:8002"
+    networks:
+      - vulnerablemart-network
+
+  notification-service:
+    build:
+      context: ./notification-service
+      dockerfile: Dockerfile
+    container_name: notification-service
+    ports:
+      - "8003:8003"
+    networks:
+      - vulnerablemart-network
+
+  # ==========================================
+  # DefectDojo Stack
+  # ==========================================
+  defectdojo-db:
+    image: postgres:15-alpine
+    container_name: defectdojo-db
+    environment:
+      - POSTGRES_DB=defectdojo
+      - POSTGRES_USER=defectdojo
+      - POSTGRES_PASSWORD=defectdojopass
+    volumes:
+      - defectdojo-db-data:/var/lib/postgresql/data
+    networks:
+      - vulnerablemart-network
+
+  defectdojo:
+    image: defectdojo/django-DefectDojo:latest
+    container_name: defectdojo
+    ports:
+      - "8080:8080"
+    environment:
+      - DD_DATABASE_URL=postgres://defectdojo:defectdojopass@defectdojo-db:5432/defectdojo
+      - DD_DATABASE_HOST=defectdojo-db
+      - DD_DATABASE_NAME=defectdojo
+      - DD_DATABASE_USER=defectdojo
+      - DD_DATABASE_PASSWORD=defectdojopass
+    depends_on:
+      - defectdojo-db
+    networks:
+      - vulnerablemart-network
+
+  # ==========================================
+  # SonarQube Stack
+  # ==========================================
+  sonarqube-db:
+    image: postgres:17
+    container_name: sonarqube-db
+    environment:
+      - POSTGRES_DB=sonar
+      - POSTGRES_USER=sonar
+      - POSTGRES_PASSWORD=sonarpass
+    volumes:
+      - sonarqube-db-data:/var/lib/postgresql/data
+    networks:
+      - vulnerablemart-network
+
+  sonarqube:
+    image: sonarqube:community
+    container_name: sonarqube
+    ports:
+      - "9000:9000"
+    environment:
+      - SONAR_JDBC_URL=jdbc:postgresql://sonarqube-db:5432/sonar
+      - SONAR_JDBC_USERNAME=sonar
+      - SONAR_JDBC_PASSWORD=sonarpass
+    depends_on:
+      - sonarqube-db
+    networks:
+      - vulnerablemart-network
+
+networks:
+  vulnerablemart-network:
+    driver: bridge
+
+volumes:
+  defectdojo-db-data:
+  sonarqube-db-data:
