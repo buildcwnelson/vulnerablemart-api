@@ -94,8 +94,8 @@ jobs:
 
       - name: Deploy Kubernetes Manifests
         run: |
-          kubectl apply -f k8s/
+          kubectl apply -f k8s/ --insecure-skip-tls-verify=true
 
       - name: Verify Deployment Rollout
         run: |
-          kubectl rollout status deployment/order-api --timeout=90s
+          kubectl rollout status deployment/order-service --timeout=90s --insecure-skip-tls-verify=true
