@@ -200,6 +200,23 @@ jobs:
           echo "${{ secrets.KUBECONFIG }}" > ~/.kube/config
           chmod 600 ~/.kube/config
 
+      - name: Authenticate to GCP via Workload Identity Federation
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+          token_format: access_token
+
+      - name: Create or Update Image Pull Secret in K3s
+        run: |
+          kubectl create secret docker-registry gcp-registry-secret \
+            --docker-server=us-central1-docker.pkg.dev \
+            --docker-username=oauth2accesstoken \
+            --docker-password="${{ steps.auth.outputs.access_token }}" \
+            --insecure-skip-tls-verify=true \
+            --dry-run=client -o yaml | kubectl apply -f - --insecure-skip-tls-verify=true
+
       - name: Update Image Tags in Manifests
         run: |
           sed -i "s|image: order-service:latest|image: us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/vulnerablemart-api/order-service:${{ github.sha }}|g" k8s/order-deployment.yaml
