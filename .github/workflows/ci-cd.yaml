@@ -92,6 +92,13 @@ jobs:
           echo "${{ secrets.KUBECONFIG }}" > ~/.kube/config
           chmod 600 ~/.kube/config
 
+      - name: Update Image Tags in Manifests
+        run: |
+          sed -i "s|image: order-service:latest|image: us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/vulnerablemart-api/order-service:${{ github.sha }}|g" k8s/order-deployment.yaml
+          sed -i "s|image: inventory-service:latest|image: us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/vulnerablemart-api/inventory-service:${{ github.sha }}|g" k8s/inventory-deployment.yaml
+          sed -i "s|image: payment-service:latest|image: us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/vulnerablemart-api/payment-service:${{ github.sha }}|g" k8s/payment-deployment.yaml
+          sed -i "s|image: notification-service:latest|image: us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/vulnerablemart-api/notification-service:${{ github.sha }}|g" k8s/notification-deployment.yaml
+
       - name: Deploy Kubernetes Manifests
         run: |
           kubectl apply -f k8s/ --insecure-skip-tls-verify=true

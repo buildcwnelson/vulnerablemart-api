@@ -14,6 +14,8 @@ spec:
       labels:
         app: inventory-service
     spec:
+      imagePullSecrets:
+      - name: gcp-registry-secret
       containers:
       - name: inventory-service
         image: inventory-service:latest
