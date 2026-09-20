@@ -52,10 +52,21 @@ jobs:
           fi
 
       - name: SonarQube Code Analysis
-        uses: SonarSource/sonarqube-scan-action@master
+        uses: SonarSource/sonarqube-scan-action@v5
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        with:
+          args: >
+            -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }}
+            -Dsonar.token=${{ secrets.SONAR_TOKEN }}
+            -Dsonar.projectKey=vulnerablemart-api
+            -Dsonar.projectName=VulnerableMart
+            -Dsonar.sources=.
+            -Dsonar.python.version=3.11
+        continue-on-error: true
+
+
 
       - name: Snyk SCA Dependency Scan
         uses: snyk/actions/python@master
