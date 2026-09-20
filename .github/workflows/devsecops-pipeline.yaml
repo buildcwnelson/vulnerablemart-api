@@ -224,6 +224,10 @@ jobs:
           sed -i "s|image: payment-service:latest|image: us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/vulnerablemart-api/payment-service:${{ github.sha }}|g" k8s/payment-deployment.yaml
           sed -i "s|image: notification-service:latest|image: us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/vulnerablemart-api/notification-service:${{ github.sha }}|g" k8s/notification-deployment.yaml
 
+      - name: Clean up Stale Pods
+        run: |
+          kubectl delete pods --field-selector status.phase=Failed --insecure-skip-tls-verify=true --ignore-not-found=true || true
+
       - name: Deploy Kubernetes Manifests
         run: |
           kubectl apply -f k8s/ --insecure-skip-tls-verify=true
