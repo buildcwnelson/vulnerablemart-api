@@ -12,6 +12,7 @@ permissions:
   id-token: write
   contents: read
   security-events: write
+  issues: write
 
 jobs:
   # ==========================================
@@ -263,6 +264,7 @@ jobs:
           target: "${{ steps.target.outputs.url }}"
           format: openapi
           fail_action: false
+          allow_issue_writing: false
 
       - name: Upload OWASP ZAP Scan Results to DefectDojo
         if: always()
