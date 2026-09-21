@@ -227,6 +227,7 @@ jobs:
 
       - name: Clean up Stale Pods
         run: |
+          kubectl get pods --no-headers --insecure-skip-tls-verify=true | awk '/ImagePullBackOff|ErrImagePull|Evicted/ {print $1}' | xargs -r kubectl delete pod --insecure-skip-tls-verify=true --grace-period=0 --force || true
           kubectl delete pods --field-selector status.phase=Failed --insecure-skip-tls-verify=true --ignore-not-found=true || true
 
       - name: Deploy Kubernetes Manifests
