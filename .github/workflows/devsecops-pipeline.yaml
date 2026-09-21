@@ -266,6 +266,7 @@ jobs:
           format: openapi
           fail_action: false
           allow_issue_writing: false
+          artifact_name: "zap-report"
 
       - name: Upload OWASP ZAP Scan Results to DefectDojo
         if: always()
