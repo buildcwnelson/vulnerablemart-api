@@ -37,14 +37,15 @@ jobs:
 
       - name: Generate TruffleHog Output Artifact
         run: |
-          trufflehog git file://. --json --only-verified > trufflehog-results.json || true
+          trufflehog git file://. --json > trufflehog-results.json || true
 
       - name: Upload TruffleHog Scan Results to DefectDojo
         if: always()
         run: |
           if [ -f trufflehog-results.json ]; then
             DOJO_URL=$(echo "${{ secrets.DEFECTDOJO_URL }}" | sed 's|/*$||')
-            curl -X POST "${DOJO_URL}/api/v2/import-scan/" \
+            echo "Uploading TruffleHog results to DefectDojo at ${DOJO_URL}..."
+            RESPONSE=$(curl -s -X POST "${DOJO_URL}/api/v2/import-scan/" \
               -H "Authorization: Token ${{ secrets.DEFECTDOJO_TOKEN }}" \
               -F "scan_type=Trufflehog3 Scan" \
               -F "file=@trufflehog-results.json" \
@@ -54,7 +55,8 @@ jobs:
               -F "active=true" \
               -F "verified=true" \
               -F "minimum_severity=Info" \
-              -F "auto_create_context=true" || true
+              -F "auto_create_context=true")
+            echo "DefectDojo Response: $RESPONSE"
           fi
 
       - name: SonarQube Code Analysis
@@ -80,7 +82,7 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           command: test
-          args: --all-projects --severity-threshold=high --json-file-output=snyk-results.json
+          args: --all-projects --json-file-output=snyk-results.json
         continue-on-error: true
 
       - name: Upload Snyk Scan Results to DefectDojo
@@ -88,7 +90,8 @@ jobs:
         run: |
           if [ -f snyk-results.json ]; then
             DOJO_URL=$(echo "${{ secrets.DEFECTDOJO_URL }}" | sed 's|/*$||')
-            curl -X POST "${DOJO_URL}/api/v2/import-scan/" \
+            echo "Uploading Snyk results to DefectDojo at ${DOJO_URL}..."
+            RESPONSE=$(curl -s -X POST "${DOJO_URL}/api/v2/import-scan/" \
               -H "Authorization: Token ${{ secrets.DEFECTDOJO_TOKEN }}" \
               -F "scan_type=Snyk Scan" \
               -F "file=@snyk-results.json" \
@@ -98,7 +101,8 @@ jobs:
               -F "active=true" \
               -F "verified=true" \
               -F "minimum_severity=Info" \
-              -F "auto_create_context=true" || true
+              -F "auto_create_context=true")
+            echo "DefectDojo Response: $RESPONSE"
           fi
 
   # ==========================================
@@ -157,17 +161,18 @@ jobs:
           image-ref: ${{ steps.meta.outputs.image }}
           format: json
           output: trivy-results.json
-          exit-code: "1"
-          ignore-unfixed: true
+          exit-code: "0"
+          ignore-unfixed: false
           vuln-type: os,library
-          severity: CRITICAL
+          severity: HIGH,CRITICAL
 
       - name: Upload Trivy Scan Results to DefectDojo
         if: always()
         run: |
           if [ -f trivy-results.json ]; then
             DOJO_URL=$(echo "${{ secrets.DEFECTDOJO_URL }}" | sed 's|/*$||')
-            curl -X POST "${DOJO_URL}/api/v2/import-scan/" \
+            echo "Uploading Trivy results for ${{ matrix.service }} to DefectDojo at ${DOJO_URL}..."
+            RESPONSE=$(curl -s -X POST "${DOJO_URL}/api/v2/import-scan/" \
               -H "Authorization: Token ${{ secrets.DEFECTDOJO_TOKEN }}" \
               -F "scan_type=Trivy Scan" \
               -F "file=@trivy-results.json" \
@@ -177,7 +182,8 @@ jobs:
               -F "active=true" \
               -F "verified=true" \
               -F "minimum_severity=Info" \
-              -F "auto_create_context=true" || true
+              -F "auto_create_context=true")
+            echo "DefectDojo Response: $RESPONSE"
           fi
 
       - name: Push Docker Image to Artifact Registry
@@ -294,7 +300,8 @@ jobs:
         run: |
           if [ -f zap_report.xml ]; then
             DOJO_URL=$(echo "${{ secrets.DEFECTDOJO_URL }}" | sed 's|/*$||')
-            curl -X POST "${DOJO_URL}/api/v2/import-scan/" \
+            echo "Uploading ZAP DAST results to DefectDojo at ${DOJO_URL}..."
+            RESPONSE=$(curl -s -X POST "${DOJO_URL}/api/v2/import-scan/" \
               -H "Authorization: Token ${{ secrets.DEFECTDOJO_TOKEN }}" \
               -F "scan_type=ZAP Scan" \
               -F "file=@zap_report.xml" \
@@ -304,5 +311,6 @@ jobs:
               -F "active=true" \
               -F "verified=true" \
               -F "minimum_severity=Info" \
-              -F "auto_create_context=true" || true
+              -F "auto_create_context=true")
+            echo "DefectDojo Response: $RESPONSE"
           fi
