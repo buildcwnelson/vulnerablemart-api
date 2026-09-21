@@ -260,13 +260,19 @@ jobs:
           echo "url=http://${CLEAN_HOST}:8000/openapi.json" >> $GITHUB_OUTPUT
 
       - name: OWASP ZAP API DAST Scan
-        uses: zaproxy/action-api-scan@v0.7.0
+        run: |
+          docker run --rm \
+            -v $(pwd):/zap/wrk/:rw \
+            ghcr.io/zaproxy/zaproxy:stable \
+            zap-api-scan.py -t "${{ steps.target.outputs.url }}" -f openapi -x zap_report.xml -r zap_report.html || true
+
+      - name: Upload ZAP HTML Report Artifact
+        if: always()
+        uses: actions/upload-artifact@v4
         with:
-          target: "${{ steps.target.outputs.url }}"
-          format: openapi
-          fail_action: false
-          allow_issue_writing: false
-          artifact_name: "zap-report"
+          name: zap-dast-report
+          path: zap_report.html
+          if-no-files-found: ignore
 
       - name: Upload OWASP ZAP Scan Results to DefectDojo
         if: always()
