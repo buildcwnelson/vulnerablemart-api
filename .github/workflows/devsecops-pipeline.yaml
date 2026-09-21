@@ -43,12 +43,17 @@ jobs:
         if: always()
         run: |
           if [ -f trufflehog-results.json ]; then
-            curl -X POST "${{ secrets.DEFECTDOJO_URL }}/api/v2/import-scan/" \
+            DOJO_URL=$(echo "${{ secrets.DEFECTDOJO_URL }}" | sed 's|/*$||')
+            curl -X POST "${DOJO_URL}/api/v2/import-scan/" \
               -H "Authorization: Token ${{ secrets.DEFECTDOJO_TOKEN }}" \
               -F "scan_type=Trufflehog3 Scan" \
               -F "file=@trufflehog-results.json" \
               -F "product_name=VulnerableMart" \
+              -F "product_type_name=Research and Development" \
               -F "engagement_name=CI/CD" \
+              -F "active=true" \
+              -F "verified=true" \
+              -F "minimum_severity=Info" \
               -F "auto_create_context=true" || true
           fi
 
@@ -82,12 +87,17 @@ jobs:
         if: always()
         run: |
           if [ -f snyk-results.json ]; then
-            curl -X POST "${{ secrets.DEFECTDOJO_URL }}/api/v2/import-scan/" \
+            DOJO_URL=$(echo "${{ secrets.DEFECTDOJO_URL }}" | sed 's|/*$||')
+            curl -X POST "${DOJO_URL}/api/v2/import-scan/" \
               -H "Authorization: Token ${{ secrets.DEFECTDOJO_TOKEN }}" \
               -F "scan_type=Snyk Scan" \
               -F "file=@snyk-results.json" \
               -F "product_name=VulnerableMart" \
+              -F "product_type_name=Research and Development" \
               -F "engagement_name=CI/CD" \
+              -F "active=true" \
+              -F "verified=true" \
+              -F "minimum_severity=Info" \
               -F "auto_create_context=true" || true
           fi
 
@@ -156,12 +166,17 @@ jobs:
         if: always()
         run: |
           if [ -f trivy-results.json ]; then
-            curl -X POST "${{ secrets.DEFECTDOJO_URL }}/api/v2/import-scan/" \
+            DOJO_URL=$(echo "${{ secrets.DEFECTDOJO_URL }}" | sed 's|/*$||')
+            curl -X POST "${DOJO_URL}/api/v2/import-scan/" \
               -H "Authorization: Token ${{ secrets.DEFECTDOJO_TOKEN }}" \
               -F "scan_type=Trivy Scan" \
               -F "file=@trivy-results.json" \
               -F "product_name=VulnerableMart" \
+              -F "product_type_name=Research and Development" \
               -F "engagement_name=CI/CD" \
+              -F "active=true" \
+              -F "verified=true" \
+              -F "minimum_severity=Info" \
               -F "auto_create_context=true" || true
           fi
 
@@ -278,11 +293,16 @@ jobs:
         if: always()
         run: |
           if [ -f zap_report.xml ]; then
-            curl -X POST "${{ secrets.DEFECTDOJO_URL }}/api/v2/import-scan/" \
+            DOJO_URL=$(echo "${{ secrets.DEFECTDOJO_URL }}" | sed 's|/*$||')
+            curl -X POST "${DOJO_URL}/api/v2/import-scan/" \
               -H "Authorization: Token ${{ secrets.DEFECTDOJO_TOKEN }}" \
               -F "scan_type=ZAP Scan" \
               -F "file=@zap_report.xml" \
               -F "product_name=VulnerableMart" \
+              -F "product_type_name=Research and Development" \
               -F "engagement_name=CI/CD" \
+              -F "active=true" \
+              -F "verified=true" \
+              -F "minimum_severity=Info" \
               -F "auto_create_context=true" || true
           fi
